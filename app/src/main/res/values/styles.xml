@@ -1,0 +1,6 @@
+<resources>
+    <style name="Theme.SpeedSkateLeague" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#020610</item>
+        <item name="android:windowBackground">#020610</item>
+    </style>
+</resources>
