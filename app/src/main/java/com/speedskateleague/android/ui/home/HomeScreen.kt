@@ -103,6 +103,33 @@ fun HomeScreen(
                             )
                         }
                     }
+                    if (roles.any { it.contains("league_director") || it.contains("admin") }) {
+                        item {
+                            FocusRow(
+                                title = "League Director",
+                                value = "Manage league",
+                                onClick = { navController.navigate(SslDestination.LeagueDirector.route) },
+                            )
+                        }
+                    }
+                    if (roles.any { it.contains("tabulator") || it.contains("meet_director") || it.contains("league_director") }) {
+                        item {
+                            FocusRow(
+                                title = "Tabulator",
+                                value = "Meet discussions",
+                                onClick = { navController.navigate(SslDestination.Tabulator.route) },
+                            )
+                        }
+                    }
+                    if (roles.any { it == "admin" }) {
+                        item {
+                            FocusRow(
+                                title = "Admin",
+                                value = "Manage platform",
+                                onClick = { navController.navigate(SslDestination.Admin.route) },
+                            )
+                        }
+                    }
                 }
             }
         }

@@ -5,6 +5,7 @@ import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.HTTP
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -83,4 +84,58 @@ interface SslApiService {
 
     @HTTP(method = "DELETE", path = "/api/mobile/push-token", hasBody = true)
     suspend fun unregisterPushToken(@Body body: UnregisterPushTokenRequest)
+
+    // League Director
+    @GET("/api/league-director/pending-coaches")
+    suspend fun getPendingCoaches(): List<PendingPersonDto>
+
+    @POST("/api/league-director/pending-coaches/{id}")
+    suspend fun approveCoachRequest(@Path("id") id: String, @Body body: CoachApprovalRequest)
+
+    @GET("/api/director/league-stats")
+    suspend fun getLeagueStats(@Query("league") league: String? = null): LeagueStatsDto
+
+    // Tabulator / meet-director discussions
+    @GET("/api/meet-director/discussions")
+    suspend fun getDiscussions(): DiscussionsResponse
+
+    @GET("/api/meet-director/discussions/{id}")
+    suspend fun getDiscussion(@Path("id") id: String): DiscussionDetailResponse
+
+    @POST("/api/meet-director/discussions")
+    suspend fun createDiscussion(@Body body: CreateDiscussionRequest): DiscussionDto
+
+    @POST("/api/meet-director/discussions/{id}/replies")
+    suspend fun createDiscussionReply(@Path("id") id: String, @Body body: CreateReplyRequest): DiscussionReplyDto
+
+    // Admin
+    @GET("/api/admin/stats")
+    suspend fun getAdminStats(): AdminStatsDto
+
+    @GET("/api/admin/users")
+    suspend fun searchAdminUsers(@Query("q") query: String): List<PendingPersonDto>
+
+    @GET("/api/admin/profile/{id}")
+    suspend fun getAdminProfile(@Path("id") id: String): AdminProfileDto
+
+    @PUT("/api/admin/profile/{id}")
+    suspend fun updateAdminProfile(@Path("id") id: String, @Body body: AdminProfileUpdateRequest): AdminProfileDto
+
+    @GET("/api/admin/pending-roles")
+    suspend fun getPendingRoles(): List<PendingPersonDto>
+
+    @POST("/api/admin/approve-role")
+    suspend fun approveRoleRequest(@Body body: ApproveRoleRequest)
+
+    @GET("/api/director/schedule")
+    suspend fun getDirectorSchedule(@Query("league") league: String? = null): List<ScheduleEventDto>
+
+    @POST("/api/director/schedule")
+    suspend fun createScheduleEvent(@Body body: ScheduleEventRequest): ScheduleEventDto
+
+    @PUT("/api/director/schedule/{id}")
+    suspend fun updateScheduleEvent(@Path("id") id: String, @Body body: ScheduleEventRequest): ScheduleEventDto
+
+    @DELETE("/api/director/schedule/{id}")
+    suspend fun deleteScheduleEvent(@Path("id") id: String)
 }
