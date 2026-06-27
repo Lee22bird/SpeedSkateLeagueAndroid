@@ -26,6 +26,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.speedskateleague.android.ui.announcements.AnnouncementsScreen
+import com.speedskateleague.android.ui.coach.CoachToolsScreen
 import com.speedskateleague.android.ui.home.HomeScreen
 import com.speedskateleague.android.ui.meets.DiscoverMeetsScreen
 import com.speedskateleague.android.ui.meets.UpcomingMeetsScreen
@@ -44,6 +45,7 @@ sealed class SslDestination(val route: String, val label: String) {
     data object UpcomingMeets : SslDestination("upcoming_meets", "Upcoming Meets")
     data object DiscoverMeets : SslDestination("discover_meets", "Discover Meets")
     data object RaceResults : SslDestination("race_results", "Race Results")
+    data object CoachTools : SslDestination("coach_tools", "Coach Tools")
 }
 
 private val tabs = listOf(SslDestination.Home, SslDestination.Profile, SslDestination.Settings)
@@ -130,6 +132,11 @@ fun SslNavHost(onSignOut: () -> Unit) {
             composable(SslDestination.RaceResults.route) {
                 DetailScaffold(title = SslDestination.RaceResults.label, navController = navController) {
                     RaceResultsScreen()
+                }
+            }
+            composable(SslDestination.CoachTools.route) {
+                DetailScaffold(title = SslDestination.CoachTools.label, navController = navController) {
+                    CoachToolsScreen()
                 }
             }
         }

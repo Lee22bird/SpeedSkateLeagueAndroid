@@ -93,6 +93,16 @@ fun HomeScreen(
                             onClick = { navController.navigate(SslDestination.Profile.route) },
                         )
                     }
+                    val roles = state.profile?.roles.orEmpty().map { it.lowercase() }
+                    if (roles.any { it.contains("coach") || it.contains("admin") }) {
+                        item {
+                            FocusRow(
+                                title = "Coach Tools",
+                                value = "Manage team",
+                                onClick = { navController.navigate(SslDestination.CoachTools.route) },
+                            )
+                        }
+                    }
                 }
             }
         }

@@ -107,7 +107,86 @@ data class TeamHubDto(
     val coachFavoriteMeets: List<MeetDto> = emptyList(),
     val meetAttendanceIntents: List<MeetAttendanceDto> = emptyList(),
     val favoriteMeetAttendanceIntents: List<MeetAttendanceDto> = emptyList(),
+    val practices: List<CoachPracticeDto> = emptyList(),
+    val teamSettings: CoachTeamSettingsDto? = null,
 )
+
+@Serializable
+data class CoachTeamSettingsDto(
+    @SerialName("team_name") val teamName: String? = null,
+    @SerialName("league_slug") val leagueSlug: String? = null,
+    @SerialName("dues_enabled") val duesEnabled: Boolean = false,
+    @SerialName("dues_amount") val duesAmount: Double? = null,
+    @SerialName("dues_reset_day") val duesResetDay: Int? = null,
+)
+
+@Serializable
+data class CoachPracticeDto(
+    @Serializable(with = FlexibleIdSerializer::class) val id: String,
+    val title: String? = null,
+    @SerialName("practice_date") val practiceDate: String? = null,
+    @SerialName("practice_time") val practiceTime: String? = null,
+    @SerialName("start_time") val startTime: String? = null,
+    val location: String? = null,
+    val notes: String? = null,
+) {
+    val sortKey: String get() = "${practiceDate.orEmpty()} ${startTime ?: practiceTime.orEmpty()}"
+}
+
+@Serializable
+data class CoachAnnouncementDto(
+    @Serializable(with = FlexibleIdSerializer::class) val id: String,
+    val title: String? = null,
+    val body: String? = null,
+    @SerialName("created_at") val createdAt: String? = null,
+    @SerialName("author_name") val authorName: String? = null,
+)
+
+@Serializable
+data class CoachRosterMemberDto(
+    @Serializable(with = FlexibleIdSerializer::class) val id: String,
+    @SerialName("ssl_skater_id") val sslSkaterId: String? = null,
+    @SerialName("full_name") val fullName: String,
+    @SerialName("age_group") val ageGroup: String? = null,
+    @SerialName("helmet_number") @Serializable(with = FlexibleIdSerializer::class) val helmetNumber: String? = null,
+    @SerialName("dues_status") val duesStatusRaw: String? = null,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+    @SerialName("profile_photo_url") val profilePhotoUrl: String? = null,
+) {
+    val duesStatus: String get() = if ((duesStatusRaw ?: "owes").lowercase() == "paid") "paid" else "owes"
+    val resolvedAvatarUrl: String? get() = avatarUrl ?: profilePhotoUrl
+}
+
+@Serializable
+data class CoachPendingMemberDto(
+    @Serializable(with = FlexibleIdSerializer::class) val id: String,
+    @SerialName("ssl_skater_id") val sslSkaterId: String? = null,
+    @SerialName("full_name") val fullName: String,
+    @SerialName("age_group") val ageGroup: String? = null,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+    @SerialName("profile_photo_url") val profilePhotoUrl: String? = null,
+) {
+    val resolvedAvatarUrl: String? get() = avatarUrl ?: profilePhotoUrl
+}
+
+@Serializable
+data class PostAnnouncementRequest(val title: String, val body: String, val published: Boolean = true)
+
+@Serializable
+data class CreatePracticeRequest(
+    val title: String,
+    @SerialName("practice_date") val practiceDate: String,
+    @SerialName("practice_time") val practiceTime: String,
+    @SerialName("start_time") val startTime: String,
+    val location: String,
+    val notes: String,
+)
+
+@Serializable
+data class SetDuesRequest(@SerialName("dues_status") val duesStatus: String)
+
+@Serializable
+data class ApprovePendingRequest(val skaterId: String, val action: String)
 
 @Serializable
 data class MeetDto(
