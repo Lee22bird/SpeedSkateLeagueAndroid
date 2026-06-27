@@ -3,6 +3,7 @@ package com.speedskateleague.android.push
 import android.annotation.SuppressLint
 import android.content.Context
 import android.provider.Settings
+import android.util.Log
 import com.speedskateleague.android.BuildConfig
 import com.speedskateleague.android.network.RegisterPushTokenRequest
 import com.speedskateleague.android.network.SslApiClient
@@ -20,9 +21,12 @@ import kotlinx.coroutines.withContext
 class PushTokenSyncService(private val context: Context, private val apiClient: SslApiClient) {
 
     suspend fun register(token: String) {
-        if (!apiClient.isSignedIn()) return
+        if (!apiClient.isSignedIn()) {
+            Log.w("SslPush", "register: not signed in, skipping")
+            return
+        }
         withContext(Dispatchers.IO) {
-            runCatching {
+            val result = runCatching {
                 apiClient.api.registerPushToken(
                     RegisterPushTokenRequest(
                         token = token,
@@ -31,6 +35,11 @@ class PushTokenSyncService(private val context: Context, private val apiClient: 
                         appVersion = BuildConfig.VERSION_NAME,
                     ),
                 )
+            }
+            result.onSuccess {
+                Log.d("SslPush", "register: backend call succeeded")
+            }.onFailure { error ->
+                Log.e("SslPush", "register: backend call FAILED: ${error.javaClass.simpleName}: ${error.message}", error)
             }
         }
     }

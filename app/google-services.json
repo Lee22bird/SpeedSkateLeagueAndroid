@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "000000000000",
-    "project_id": "speedskateleague-placeholder",
-    "storage_bucket": "speedskateleague-placeholder.appspot.com"
+    "project_number": "500985214536",
+    "project_id": "speedskateleague",
+    "storage_bucket": "speedskateleague.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+        "mobilesdk_app_id": "1:500985214536:android:6dd831959cf56f75a88a7d",
         "android_client_info": {
           "package_name": "com.speedskateleague.android"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "PLACEHOLDER_API_KEY"
+          "current_key": "AIzaSyC6T0heurrJruozz5nnn0e4okIP8m9dh34"
         }
       ],
       "services": {

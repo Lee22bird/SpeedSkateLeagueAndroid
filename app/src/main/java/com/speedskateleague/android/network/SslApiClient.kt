@@ -3,21 +3,27 @@ package com.speedskateleague.android.network
 import android.content.Context
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
-import okhttp3.Authenticator
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.Route
+import okhttp3.Response
 import retrofit2.Retrofit
 import retrofit2.create
 import java.util.concurrent.TimeUnit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
 private const val BASE_URL = "https://speedskateleague.com"
+private const val RETRY_HEADER = "X-SSL-Retry"
 
 /**
  * Android equivalent of SSLAPIClient (SSLNetworking.swift:169): bearer-token auth with
- * automatic refresh-and-retry on 401, backed by EncryptedSharedPreferences instead of Keychain.
+ * automatic refresh-and-retry, backed by EncryptedSharedPreferences instead of Keychain.
+ *
+ * Refresh-and-retry is implemented as an Interceptor rather than an OkHttp Authenticator
+ * because this backend's getSessionUser() returns HTTP 403 ("Forbidden") for an expired or
+ * invalid session token — not 401. OkHttp's Authenticator API only ever fires for 401, so an
+ * Authenticator-based approach (the original implementation) silently never refreshes once a
+ * token ages out; every request just permanently 403s until the user manually re-logs in.
  */
 class SslApiClient(context: Context) {
     private val sessionStore = SessionStore(context)
@@ -37,26 +43,27 @@ class SslApiClient(context: Context) {
 
     private val plainApi: SslApiService = plainRetrofit.create()
 
-    private val authenticator = Authenticator { _, response ->
-        if (response.request.header("X-SSL-Retry") != null) return@Authenticator null
-        val session = sessionStore.load() ?: return@Authenticator null
+    private fun refreshAndRetry(chain: okhttp3.Interceptor.Chain, response: Response): Response? {
+        if (response.request.header(RETRY_HEADER) != null) return null
+        val session = sessionStore.load() ?: return null
         val refreshed = runCatching {
             runBlocking { plainApi.refresh(RefreshRequest(session.refreshToken)) }
         }.getOrNull() ?: run {
             sessionStore.clear()
-            return@Authenticator null
+            return null
         }
         sessionStore.save(refreshed.session)
-        response.request.newBuilder()
+        val retryRequest = response.request.newBuilder()
             .header("Authorization", "Bearer ${refreshed.session.accessToken}")
-            .header("X-SSL-Retry", "1")
+            .header(RETRY_HEADER, "1")
             .build()
+        response.close()
+        return chain.proceed(retryRequest)
     }
 
     private val authedClient = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(15, TimeUnit.SECONDS)
-        .authenticator(authenticator)
         .addInterceptor { chain ->
             val session = sessionStore.load()
             val request: Request = if (session != null) {
@@ -66,7 +73,12 @@ class SslApiClient(context: Context) {
             } else {
                 chain.request()
             }
-            chain.proceed(request)
+            val response = chain.proceed(request)
+            if (response.code == 401 || response.code == 403) {
+                refreshAndRetry(chain, response) ?: response
+            } else {
+                response
+            }
         }
         .build()
 
