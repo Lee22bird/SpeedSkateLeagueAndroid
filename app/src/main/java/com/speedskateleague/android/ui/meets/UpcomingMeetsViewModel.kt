@@ -8,6 +8,7 @@ import com.speedskateleague.android.network.MeetAttendanceDto
 import com.speedskateleague.android.network.MeetDto
 import com.speedskateleague.android.network.SslDateParser
 import com.speedskateleague.android.network.SslMeet
+import com.speedskateleague.android.push.MeetReminderScheduler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -79,6 +80,7 @@ class UpcomingMeetsViewModel(app: Application) : AndroidViewModel(app) {
 
             val merged = dedupe(next + schedule + hubFavorites + standaloneFavorites)
             _uiState.value = _uiState.value.copy(meets = merged, isLoading = false)
+            MeetReminderScheduler.scheduleReminders(getApplication(), merged)
         }
     }
 

@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.speedskateleague.android.SslApplication
+import com.speedskateleague.android.push.PushBootstrap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,6 +38,7 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
             val result = runCatching { apiClient.login(state.email.trim(), state.password) }
             result.onSuccess {
                 _uiState.value = _uiState.value.copy(isLoading = false)
+                runCatching { PushBootstrap.registerCurrentToken(getApplication(), apiClient) }
                 onSuccess()
             }.onFailure { error ->
                 _uiState.value = _uiState.value.copy(

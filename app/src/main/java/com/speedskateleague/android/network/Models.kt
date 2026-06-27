@@ -189,6 +189,18 @@ data class SetDuesRequest(@SerialName("dues_status") val duesStatus: String)
 data class ApprovePendingRequest(val skaterId: String, val action: String)
 
 @Serializable
+data class RegisterPushTokenRequest(
+    val token: String,
+    val platform: String = "android",
+    val environment: String,
+    @SerialName("device_id") val deviceId: String,
+    @SerialName("app_version") val appVersion: String,
+)
+
+@Serializable
+data class UnregisterPushTokenRequest(val token: String)
+
+@Serializable
 data class MeetDto(
     val id: String? = null,
     @SerialName("meet_id") val meetId: String? = null,

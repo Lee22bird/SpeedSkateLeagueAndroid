@@ -79,8 +79,8 @@ interface SslApiService {
     suspend fun updatePendingMember(@Body body: ApprovePendingRequest)
 
     @POST("/api/mobile/push-token")
-    suspend fun registerPushToken(@Body body: Map<String, String>)
+    suspend fun registerPushToken(@Body body: RegisterPushTokenRequest)
 
-    @DELETE("/api/mobile/push-token")
-    suspend fun unregisterPushToken()
+    @HTTP(method = "DELETE", path = "/api/mobile/push-token", hasBody = true)
+    suspend fun unregisterPushToken(@Body body: UnregisterPushTokenRequest)
 }
