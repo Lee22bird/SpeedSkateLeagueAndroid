@@ -69,13 +69,21 @@ fun HomeScreen(
                             value = (state.profile?.stats?.unreadNotifications ?: 0).let {
                                 if (it == 0) "All caught up" else "$it unread"
                             },
+                            onClick = { navController.navigate(SslDestination.Notifications.route) },
                         )
                     }
-                    item { FocusRow(title = "Announcements", value = "View latest") }
+                    item {
+                        FocusRow(
+                            title = "Announcements",
+                            value = "View latest",
+                            onClick = { navController.navigate(SslDestination.Announcements.route) },
+                        )
+                    }
                     item {
                         FocusRow(
                             title = "Upcoming Meets",
                             value = "${state.profile?.stats?.upcomingMeets ?: 0} scheduled",
+                            onClick = { navController.navigate(SslDestination.UpcomingMeets.route) },
                         )
                     }
                     item {
@@ -177,14 +185,14 @@ private fun StatsGrid(profile: MeProfile?, navController: NavHostController) {
                 value = "${stats?.unreadNotifications ?: 0}",
                 color = SslColors.Orange,
                 modifier = Modifier.weight(1f),
-                onClick = {},
+                onClick = { navController.navigate(SslDestination.Notifications.route) },
             )
             StatCard(
                 label = "Upcoming Meets",
                 value = "${stats?.upcomingMeets ?: 0}",
                 color = SslColors.Blue,
                 modifier = Modifier.weight(1f),
-                onClick = {},
+                onClick = { navController.navigate(SslDestination.UpcomingMeets.route) },
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(SslSpacing.sm)) {
@@ -193,14 +201,14 @@ private fun StatsGrid(profile: MeProfile?, navController: NavHostController) {
                 value = "${stats?.raceResults ?: 0}",
                 color = Color.White,
                 modifier = Modifier.weight(1f),
-                onClick = {},
+                onClick = { navController.navigate(SslDestination.RaceResults.route) },
             )
             StatCard(
                 label = "Time Trials",
                 value = "${stats?.timeTrialResults ?: 0}",
                 color = SslColors.Orange,
                 modifier = Modifier.weight(1f),
-                onClick = {},
+                onClick = { navController.navigate(SslDestination.RaceResults.route) },
             )
         }
     }

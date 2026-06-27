@@ -3,8 +3,10 @@ package com.speedskateleague.android.network
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.HTTP
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface SslApiService {
     @POST("/api/mobile/auth/login")
@@ -23,13 +25,34 @@ interface SslApiService {
     suspend fun saveNotificationPreferences(@Body body: NotificationPreferences): NotificationPreferences
 
     @GET("/api/notifications")
-    suspend fun getNotifications(): NotificationsResponse
+    suspend fun getNotifications(): List<NotificationItemDto>
 
     @POST("/api/notifications/{id}/read")
     suspend fun markNotificationRead(@Path("id") id: String)
 
     @POST("/api/notifications/read-all")
     suspend fun markAllNotificationsRead()
+
+    @GET("/api/team-hub")
+    suspend fun getTeamHub(): TeamHubDto
+
+    @GET("/api/public/league-announcements")
+    suspend fun getPublicLeagueAnnouncements(@Query("league") league: String): List<AnnouncementDto>
+
+    @GET("/api/favorite-meets")
+    suspend fun getFavoriteMeets(): List<MeetDto>
+
+    @POST("/api/favorite-meets")
+    suspend fun addFavoriteMeet(@Body body: FavoriteMeetRequest)
+
+    @HTTP(method = "DELETE", path = "/api/favorite-meets", hasBody = true)
+    suspend fun removeFavoriteMeet(@Body body: UnfavoriteMeetRequest)
+
+    @GET("/api/discover-meets")
+    suspend fun getDiscoverMeets(): DiscoverMeetsResponse
+
+    @GET("/api/skater-results/{profileId}")
+    suspend fun getSkaterResults(@Path("profileId") profileId: String): SkaterResultsDto
 
     @POST("/api/mobile/push-token")
     suspend fun registerPushToken(@Body body: Map<String, String>)
