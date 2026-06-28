@@ -1,5 +1,7 @@
 package com.speedskateleague.android.ui.tabulator
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
@@ -25,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.speedskateleague.android.network.DiscussionDto
@@ -38,6 +42,8 @@ import com.speedskateleague.android.ui.theme.SslType
 import com.speedskateleague.android.ui.theme.relativeTimeLabel
 import com.speedskateleague.android.ui.theme.sslGlassCard
 import com.speedskateleague.android.network.SslDateParser
+
+private const val SSM_URL = "https://speedskatemeet.com"
 
 /** Native port of the Tabulator portal tab's meet-director discussion board. */
 @Composable
@@ -72,11 +78,14 @@ private fun DiscussionList(
 ) {
     var title by remember { mutableStateOf("") }
     var body by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     LazyColumn(
         contentPadding = PaddingValues(SslSpacing.md),
         verticalArrangement = Arrangement.spacedBy(SslSpacing.sm),
     ) {
+        item { DirectorQuickToolsCard(onOpenUrl = { url -> context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }) }
+
         item {
             Column(modifier = Modifier.fillMaxWidth().sslGlassCard().padding(SslSpacing.md)) {
                 Text("NEW DISCUSSION", style = SslType.label)
@@ -124,6 +133,41 @@ private fun DiscussionList(
                 DiscussionRow(discussion, onClick = { onSelect(discussion) })
             }
         }
+    }
+}
+
+/** Mirrors the web portal's "Meet Director Panel" external links to the separate SpeedSkateMeet app. */
+@Composable
+private fun DirectorQuickToolsCard(onOpenUrl: (String) -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth().sslGlassCard().padding(SslSpacing.md)) {
+        Text("DIRECTOR QUICK TOOLS", style = SslType.label)
+        Text("Your SpeedSkateLeague login works on SpeedSkateMeet.", style = SslType.caption)
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(SslSpacing.sm))
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(SslSpacing.sm)) {
+            items(
+                listOf(
+                    "Open SpeedSkateMeet" to SSM_URL,
+                    "Create New Meet" to SSM_URL,
+                    "My SSM Meets" to SSM_URL,
+                    "Templates & Checklists" to SSM_URL,
+                ),
+            ) { (label, url) ->
+                QuickToolButton(label = label, onClick = { onOpenUrl(url) })
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuickToolButton(label: String, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(SslSpacing.sm))
+            .background(SslColors.GlassFill)
+            .clickable { onClick() }
+            .padding(horizontal = SslSpacing.md, vertical = SslSpacing.sm),
+    ) {
+        Text(label, style = SslType.caption, color = SslColors.Blue)
     }
 }
 
