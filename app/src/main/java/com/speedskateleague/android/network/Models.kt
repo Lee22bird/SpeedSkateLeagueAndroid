@@ -1,5 +1,8 @@
+@file:OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+
 package com.speedskateleague.android.network
 
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -191,7 +194,11 @@ data class ApprovePendingRequest(val skaterId: String, val action: String)
 @Serializable
 data class RegisterPushTokenRequest(
     val token: String,
-    val platform: String = "android",
+    // kotlinx.serialization omits fields left at their default value unless marked
+    // @EncodeDefault — without this, "platform" was silently dropped from every request
+    // body, and the backend defaults a missing platform to "ios", so every Android
+    // registration was being filed as an iOS device token.
+    @EncodeDefault(EncodeDefault.Mode.ALWAYS) val platform: String = "android",
     val environment: String,
     @SerialName("device_id") val deviceId: String,
     @SerialName("app_version") val appVersion: String,

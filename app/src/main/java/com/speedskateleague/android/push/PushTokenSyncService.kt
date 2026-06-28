@@ -30,6 +30,7 @@ class PushTokenSyncService(private val context: Context, private val apiClient: 
                 apiClient.api.registerPushToken(
                     RegisterPushTokenRequest(
                         token = token,
+                        platform = "android",
                         environment = if (BuildConfig.DEBUG) "debug" else "production",
                         deviceId = deviceId(),
                         appVersion = BuildConfig.VERSION_NAME,
