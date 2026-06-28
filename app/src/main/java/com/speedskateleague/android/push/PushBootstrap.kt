@@ -7,6 +7,9 @@ import com.speedskateleague.android.network.SslApiClient
 import kotlinx.coroutines.suspendCancellableCoroutine
 
 private const val TAG = "SslPush"
+private const val PUSH_PREFS = "ssl_push_bootstrap"
+private const val TOKEN_GENERATION_KEY = "fcm_token_generation"
+private const val CURRENT_TOKEN_GENERATION = 2
 
 /**
  * Fetches the current FCM token and registers/unregisters it with the backend. Called after a
@@ -15,6 +18,11 @@ private const val TAG = "SslPush"
  */
 object PushBootstrap {
     suspend fun registerCurrentToken(context: Context, apiClient: SslApiClient) {
+        val preferences = context.getSharedPreferences(PUSH_PREFS, Context.MODE_PRIVATE)
+        if (preferences.getInt(TOKEN_GENERATION_KEY, 0) < CURRENT_TOKEN_GENERATION) {
+            rotateAndRegisterToken(context, apiClient, preferences)
+            return
+        }
         Log.d(TAG, "registerCurrentToken: fetching FCM token...")
         val token = currentToken()
         if (token == null) {
@@ -22,8 +30,8 @@ object PushBootstrap {
             return
         }
         Log.d(TAG, "registerCurrentToken: got token (len=${token.length}), calling backend")
-        val result = runCatching { PushTokenSyncService(context, apiClient).register(token) }
-        Log.d(TAG, "registerCurrentToken: backend call result = $result")
+        val registered = PushTokenSyncService(context, apiClient).register(token)
+        Log.d(TAG, "registerCurrentToken: backend accepted token = $registered")
     }
 
     suspend fun unregisterCurrentToken(context: Context, apiClient: SslApiClient) {
@@ -40,6 +48,42 @@ object PushBootstrap {
             .addOnFailureListener { error ->
                 Log.e(TAG, "FirebaseMessaging.token FAILED: ${error.javaClass.simpleName}: ${error.message}", error)
                 continuation.resumeWith(Result.success(null))
+            }
+    }
+
+    private suspend fun rotateAndRegisterToken(
+        context: Context,
+        apiClient: SslApiClient,
+        preferences: android.content.SharedPreferences,
+    ) {
+        Log.d(TAG, "rotateAndRegisterToken: replacing legacy FCM token")
+        currentToken()?.let { oldToken ->
+            runCatching { PushTokenSyncService(context, apiClient).unregister(oldToken) }
+        }
+        if (!deleteCurrentToken()) {
+            Log.w(TAG, "rotateAndRegisterToken: Firebase token deletion failed; will retry next launch")
+            return
+        }
+        val freshToken = currentToken()
+        if (freshToken == null) {
+            Log.w(TAG, "rotateAndRegisterToken: Firebase did not return a fresh token")
+            return
+        }
+        val registered = PushTokenSyncService(context, apiClient).register(freshToken)
+        if (registered) {
+            preferences.edit().putInt(TOKEN_GENERATION_KEY, CURRENT_TOKEN_GENERATION).apply()
+            Log.d(TAG, "rotateAndRegisterToken: fresh token registered (length=${freshToken.length})")
+        } else {
+            Log.w(TAG, "rotateAndRegisterToken: backend registration failed; will retry next launch")
+        }
+    }
+
+    private suspend fun deleteCurrentToken(): Boolean = suspendCancellableCoroutine { continuation ->
+        FirebaseMessaging.getInstance().deleteToken()
+            .addOnSuccessListener { continuation.resumeWith(Result.success(true)) }
+            .addOnFailureListener { error ->
+                Log.e(TAG, "FirebaseMessaging.deleteToken FAILED: ${error.javaClass.simpleName}: ${error.message}", error)
+                continuation.resumeWith(Result.success(false))
             }
     }
 }

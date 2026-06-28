@@ -20,12 +20,12 @@ import kotlinx.coroutines.withContext
  */
 class PushTokenSyncService(private val context: Context, private val apiClient: SslApiClient) {
 
-    suspend fun register(token: String) {
+    suspend fun register(token: String): Boolean {
         if (!apiClient.isSignedIn()) {
             Log.w("SslPush", "register: not signed in, skipping")
-            return
+            return false
         }
-        withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             val result = runCatching {
                 apiClient.api.registerPushToken(
                     RegisterPushTokenRequest(
@@ -37,10 +37,11 @@ class PushTokenSyncService(private val context: Context, private val apiClient: 
                 )
             }
             result.onSuccess {
-                Log.d("SslPush", "register: backend call succeeded")
+                Log.d("SslPush", "register: backend call succeeded (token length=${token.length})")
             }.onFailure { error ->
                 Log.e("SslPush", "register: backend call FAILED: ${error.javaClass.simpleName}: ${error.message}", error)
             }
+            result.isSuccess
         }
     }
 
