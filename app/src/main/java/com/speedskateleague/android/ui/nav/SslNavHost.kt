@@ -30,7 +30,10 @@ import com.speedskateleague.android.ui.announcements.AnnouncementsScreen
 import com.speedskateleague.android.ui.coach.CoachToolsScreen
 import com.speedskateleague.android.ui.home.HomeScreen
 import com.speedskateleague.android.ui.leaguedirector.LeagueDirectorScreen
+import com.speedskateleague.android.ui.meetdirector.MeetDirectorScreen
+import com.speedskateleague.android.ui.skater.SkaterScreen
 import com.speedskateleague.android.ui.tabulator.TabulatorScreen
+import com.speedskateleague.android.ui.teamhub.TeamHubScreen
 import com.speedskateleague.android.ui.meets.DiscoverMeetsScreen
 import com.speedskateleague.android.ui.meets.UpcomingMeetsScreen
 import com.speedskateleague.android.ui.notifications.NotificationsScreen
@@ -51,7 +54,10 @@ sealed class SslDestination(val route: String, val label: String) {
     data object CoachTools : SslDestination("coach_tools", "Coach Tools")
     data object LeagueDirector : SslDestination("league_director", "League Director")
     data object Tabulator : SslDestination("tabulator", "Tabulator")
+    data object TeamHub : SslDestination("team_hub", "Team Hub")
+    data object MeetDirector : SslDestination("meet_director", "Meet Director")
     data object Admin : SslDestination("admin", "Admin")
+    data object Skater : SslDestination("skater", "Skater")
 }
 
 private val tabs = listOf(SslDestination.Home, SslDestination.Profile, SslDestination.Settings)
@@ -155,9 +161,24 @@ fun SslNavHost(onSignOut: () -> Unit) {
                     TabulatorScreen()
                 }
             }
+            composable(SslDestination.TeamHub.route) {
+                DetailScaffold(title = SslDestination.TeamHub.label, navController = navController) {
+                    TeamHubScreen()
+                }
+            }
+            composable(SslDestination.MeetDirector.route) {
+                DetailScaffold(title = SslDestination.MeetDirector.label, navController = navController) {
+                    MeetDirectorScreen()
+                }
+            }
             composable(SslDestination.Admin.route) {
                 DetailScaffold(title = SslDestination.Admin.label, navController = navController) {
                     AdminScreen()
+                }
+            }
+            composable(SslDestination.Skater.route) {
+                DetailScaffold(title = SslDestination.Skater.label, navController = navController) {
+                    SkaterScreen()
                 }
             }
         }

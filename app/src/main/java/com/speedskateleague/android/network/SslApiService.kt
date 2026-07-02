@@ -95,7 +95,11 @@ interface SslApiService {
     @GET("/api/director/league-stats")
     suspend fun getLeagueStats(@Query("league") league: String? = null): LeagueStatsDto
 
-    // Tabulator / meet-director discussions
+    // Tabulator: logged-in official's own upcoming meet assignments
+    @GET("/api/tabulator/assignments")
+    suspend fun getTabulatorAssignments(): TabulatorAssignmentsResponse
+
+    // Meet-director discussions (used by LeagueDirector screen)
     @GET("/api/meet-director/discussions")
     suspend fun getDiscussions(): DiscussionsResponse
 
@@ -107,6 +111,19 @@ interface SslApiService {
 
     @POST("/api/meet-director/discussions/{id}/replies")
     suspend fun createDiscussionReply(@Path("id") id: String, @Body body: CreateReplyRequest): DiscussionReplyDto
+
+    // League director private forum
+    @GET("/api/league-director/discussions")
+    suspend fun getLdDiscussions(): DiscussionsResponse
+
+    @GET("/api/league-director/discussions/{id}")
+    suspend fun getLdDiscussion(@Path("id") id: String): DiscussionDetailResponse
+
+    @POST("/api/league-director/discussions")
+    suspend fun createLdDiscussion(@Body body: CreateDiscussionRequest): DiscussionDto
+
+    @POST("/api/league-director/discussions/{id}/replies")
+    suspend fun createLdDiscussionReply(@Path("id") id: String, @Body body: CreateReplyRequest): DiscussionReplyDto
 
     // Admin
     @GET("/api/admin/stats")
@@ -138,4 +155,61 @@ interface SslApiService {
 
     @DELETE("/api/director/schedule/{id}")
     suspend fun deleteScheduleEvent(@Path("id") id: String)
+
+    // ── Skater Feed ──────────────────────────────────────────────────────────
+
+    @GET("/api/skater/feed")
+    suspend fun getSkaterPublicFeed(
+        @Query("limit") limit: Int = 20,
+        @Query("cursor") cursor: String? = null,
+    ): SkaterFeedResponse
+
+    @GET("/api/skater/feed/following")
+    suspend fun getSkaterFollowingFeed(
+        @Query("limit") limit: Int = 20,
+        @Query("cursor") cursor: String? = null,
+    ): SkaterFeedResponse
+
+    @GET("/api/skater/following")
+    suspend fun getSkaterFollowing(): SkaterFollowingResponse
+
+    @GET("/api/skater/posts/{id}")
+    suspend fun getSkaterPost(@Path("id") id: String): SkaterPostResponse
+
+    @POST("/api/skater/posts")
+    suspend fun createSkaterPost(@Body body: SkaterCreatePostRequest): SkaterPostResponse
+
+    @DELETE("/api/skater/posts/{id}")
+    suspend fun deleteSkaterPost(@Path("id") id: String)
+
+    @POST("/api/skater/posts/{id}/replies")
+    suspend fun createSkaterReply(@Path("id") postId: String, @Body body: SkaterReplyRequest): SkaterPostResponse
+
+    @POST("/api/skater/posts/{id}/like")
+    suspend fun likeSkaterPost(@Path("id") id: String)
+
+    @HTTP(method = "DELETE", path = "/api/skater/posts/{id}/like", hasBody = false)
+    suspend fun unlikeSkaterPost(@Path("id") id: String)
+
+    @POST("/api/skater/follow/{userId}")
+    suspend fun followSkaterUser(@Path("userId") userId: String)
+
+    @HTTP(method = "DELETE", path = "/api/skater/follow/{userId}", hasBody = false)
+    suspend fun unfollowSkaterUser(@Path("userId") userId: String)
+
+    @GET("/api/skater/users/{userId}/posts")
+    suspend fun getSkaterUserPosts(
+        @Path("userId") userId: String,
+        @Query("limit") limit: Int = 20,
+        @Query("cursor") cursor: String? = null,
+    ): SkaterUserPostsResponse
+
+    @POST("/api/skater/posts/{id}/report")
+    suspend fun reportSkaterPost(@Path("id") id: String, @Body body: SkaterReportRequest)
+
+    @POST("/api/skater/users/{userId}/block")
+    suspend fun blockSkaterUser(@Path("userId") userId: String)
+
+    @POST("/api/skater/upload-url")
+    suspend fun getSkaterUploadUrl(@Body body: SkaterUploadUrlRequest): SkaterUploadUrlResponse
 }

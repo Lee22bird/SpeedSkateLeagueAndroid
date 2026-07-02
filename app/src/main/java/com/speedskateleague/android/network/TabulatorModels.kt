@@ -4,6 +4,29 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class TabulatorAssignmentDto(
+    @SerialName("meet_id") val meetId: String,
+    @SerialName("meet_title") val meetTitle: String? = null,
+    @SerialName("meet_date") val meetDate: String? = null,
+    @SerialName("staff_role") val staffRole: String? = null,
+    val source: String? = null,
+) {
+    val roleLabel: String get() = when (staffRole?.lowercase()) {
+        "meet_director" -> "Meet Director"
+        "tabulator", "judge" -> "Tabulator"
+        "referee" -> "Referee"
+        "announcer" -> "Announcer"
+        else -> staffRole?.replace("_", " ")?.split(" ")?.joinToString(" ") { it.replaceFirstChar(Char::uppercaseChar) } ?: "Official"
+    }
+    val isDirectorRole: Boolean get() = staffRole?.lowercase() == "meet_director"
+}
+
+@Serializable
+data class TabulatorAssignmentsResponse(
+    val assignments: List<TabulatorAssignmentDto> = emptyList(),
+)
+
+@Serializable
 data class DiscussionReplyDto(
     val id: String,
     @SerialName("discussion_id") val discussionId: String? = null,

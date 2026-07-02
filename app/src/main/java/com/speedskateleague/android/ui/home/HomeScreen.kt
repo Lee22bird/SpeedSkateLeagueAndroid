@@ -93,7 +93,24 @@ fun HomeScreen(
                             onClick = { navController.navigate(SslDestination.Profile.route) },
                         )
                     }
+                    item {
+                        FocusRow(
+                            title = "Skater",
+                            value = "Community feed",
+                            onClick = { navController.navigate(SslDestination.Skater.route) },
+                        )
+                    }
                     val roles = state.profile?.roles.orEmpty().map { it.lowercase() }
+                    val profileTeam = state.profile?.team
+                    if (profileTeam != null) {
+                        item {
+                            FocusRow(
+                                title = "Team Hub",
+                                value = profileTeam,
+                                onClick = { navController.navigate(SslDestination.TeamHub.route) },
+                            )
+                        }
+                    }
                     if (roles.any { it.contains("coach") || it.contains("admin") }) {
                         item {
                             FocusRow(
@@ -112,11 +129,20 @@ fun HomeScreen(
                             )
                         }
                     }
-                    if (roles.any { it.contains("tabulator") || it.contains("meet_director") || it.contains("league_director") }) {
+                    if (roles.any { it.contains("meet_director") || it.contains("admin") }) {
+                        item {
+                            FocusRow(
+                                title = "Meet Director",
+                                value = "Manage meets",
+                                onClick = { navController.navigate(SslDestination.MeetDirector.route) },
+                            )
+                        }
+                    }
+                    if (roles.any { it == "tabulator" || it == "judge" || it == "admin" }) {
                         item {
                             FocusRow(
                                 title = "Tabulator",
-                                value = "Meet discussions",
+                                value = "My assignments",
                                 onClick = { navController.navigate(SslDestination.Tabulator.route) },
                             )
                         }

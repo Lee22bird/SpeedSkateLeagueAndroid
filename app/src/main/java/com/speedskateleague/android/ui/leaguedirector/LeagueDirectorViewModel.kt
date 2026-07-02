@@ -5,6 +5,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.speedskateleague.android.SslApplication
 import com.speedskateleague.android.network.CoachApprovalRequest
+import com.speedskateleague.android.network.CreateDiscussionRequest
+import com.speedskateleague.android.network.CreateReplyRequest
+import com.speedskateleague.android.network.DiscussionDto
 import com.speedskateleague.android.network.LeagueStatsDto
 import com.speedskateleague.android.network.PendingPersonDto
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,9 +20,13 @@ data class LeagueDirectorUiState(
     val stats: LeagueStatsDto? = null,
     val isLoading: Boolean = true,
     val message: String? = null,
+    // Directors Forum
+    val discussions: List<DiscussionDto> = emptyList(),
+    val selectedDiscussion: DiscussionDto? = null,
+    val forumLoading: Boolean = false,
+    val forumError: String? = null,
 )
 
-/** Android equivalent of the League Director panel server-renders at /portal (tab "league"). */
 class LeagueDirectorViewModel(app: Application) : AndroidViewModel(app) {
     private val apiClient = (app as SslApplication).apiClient
 
@@ -28,6 +35,7 @@ class LeagueDirectorViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         load()
+        loadForum()
     }
 
     fun load() {
@@ -40,6 +48,47 @@ class LeagueDirectorViewModel(app: Application) : AndroidViewModel(app) {
                 stats = stats,
                 isLoading = false,
             )
+        }
+    }
+
+    fun loadForum() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(forumLoading = true, forumError = null)
+            runCatching { apiClient.api.getLdDiscussions() }
+                .onSuccess { _uiState.value = _uiState.value.copy(discussions = it.discussions, forumLoading = false) }
+                .onFailure { _uiState.value = _uiState.value.copy(forumError = it.message, forumLoading = false) }
+        }
+    }
+
+    fun selectDiscussion(discussion: DiscussionDto?) {
+        if (discussion == null) {
+            _uiState.value = _uiState.value.copy(selectedDiscussion = null)
+            return
+        }
+        viewModelScope.launch {
+            runCatching { apiClient.api.getLdDiscussion(discussion.id) }
+                .onSuccess { _uiState.value = _uiState.value.copy(selectedDiscussion = it.discussion) }
+                .onFailure { _uiState.value = _uiState.value.copy(selectedDiscussion = discussion) }
+        }
+    }
+
+    fun createDiscussion(title: String, body: String, onDone: () -> Unit) {
+        viewModelScope.launch {
+            runCatching { apiClient.api.createLdDiscussion(CreateDiscussionRequest(title, body)) }
+                .onSuccess {
+                    loadForum()
+                    onDone()
+                }
+        }
+    }
+
+    fun replyToDiscussion(discussionId: String, body: String) {
+        viewModelScope.launch {
+            runCatching { apiClient.api.createLdDiscussionReply(discussionId, CreateReplyRequest(body)) }
+                .onSuccess {
+                    runCatching { apiClient.api.getLdDiscussion(discussionId) }
+                        .onSuccess { resp -> _uiState.value = _uiState.value.copy(selectedDiscussion = resp.discussion) }
+                }
         }
     }
 
