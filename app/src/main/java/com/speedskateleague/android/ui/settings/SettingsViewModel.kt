@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.speedskateleague.android.SslApplication
+import com.speedskateleague.android.network.DeleteAccountRequest
 import com.speedskateleague.android.network.NotificationPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +16,8 @@ data class SettingsUiState(
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
     val statusMessage: String? = null,
+    val isDeletingAccount: Boolean = false,
+    val deleteAccountError: String? = null,
 )
 
 /** Android equivalent of SettingsView.swift's notification preferences screen. */
@@ -53,6 +56,27 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
                 _uiState.value = _uiState.value.copy(
                     isSaving = false,
                     statusMessage = error.message ?: "Unable to save preferences.",
+                )
+            }
+        }
+    }
+
+    /**
+     * Permanently deletes the account. Calls [onDeleted] on success so the host
+     * can run the normal sign-out cleanup (clear session, cancel reminders,
+     * return to the login screen).
+     */
+    fun deleteAccount(onDeleted: () -> Unit) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isDeletingAccount = true, deleteAccountError = null)
+            val result = runCatching { apiClient.api.deleteAccount(DeleteAccountRequest(confirm = "DELETE")) }
+            result.onSuccess {
+                _uiState.value = _uiState.value.copy(isDeletingAccount = false)
+                onDeleted()
+            }.onFailure { error ->
+                _uiState.value = _uiState.value.copy(
+                    isDeletingAccount = false,
+                    deleteAccountError = error.message ?: "Could not delete the account. Check your connection and try again.",
                 )
             }
         }

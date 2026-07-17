@@ -9,6 +9,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class LoginRequest(val email: String, val password: String)
 
+data class DeleteAccountRequest(val confirm: String)
+
 @Serializable
 data class MobileAuthSession(
     @SerialName("access_token") val accessToken: String,

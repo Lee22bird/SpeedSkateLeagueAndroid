@@ -31,7 +31,6 @@ import com.speedskateleague.android.ui.coach.CoachToolsScreen
 import com.speedskateleague.android.ui.home.HomeScreen
 import com.speedskateleague.android.ui.leaguedirector.LeagueDirectorScreen
 import com.speedskateleague.android.ui.meetdirector.MeetDirectorScreen
-import com.speedskateleague.android.ui.skater.SkaterScreen
 import com.speedskateleague.android.ui.tabulator.TabulatorScreen
 import com.speedskateleague.android.ui.teamhub.TeamHubScreen
 import com.speedskateleague.android.ui.meets.DiscoverMeetsScreen
@@ -57,7 +56,7 @@ sealed class SslDestination(val route: String, val label: String) {
     data object TeamHub : SslDestination("team_hub", "Team Hub")
     data object MeetDirector : SslDestination("meet_director", "Meet Director")
     data object Admin : SslDestination("admin", "Admin")
-    data object Skater : SslDestination("skater", "Skater")
+    // Skater community feed retired (July 2026) — removed to match iOS.
 }
 
 private val tabs = listOf(SslDestination.Home, SslDestination.Profile, SslDestination.Settings)
@@ -174,11 +173,6 @@ fun SslNavHost(onSignOut: () -> Unit) {
             composable(SslDestination.Admin.route) {
                 DetailScaffold(title = SslDestination.Admin.label, navController = navController) {
                     AdminScreen()
-                }
-            }
-            composable(SslDestination.Skater.route) {
-                DetailScaffold(title = SslDestination.Skater.label, navController = navController) {
-                    SkaterScreen()
                 }
             }
         }

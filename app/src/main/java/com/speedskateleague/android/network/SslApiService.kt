@@ -25,6 +25,11 @@ interface SslApiService {
     @POST("/api/notification-preferences")
     suspend fun saveNotificationPreferences(@Body body: NotificationPreferences): NotificationPreferences
 
+    // Permanent in-app account deletion (Google Play data-deletion policy /
+    // Apple 5.1.1(v)). Requires { confirm: "DELETE" }.
+    @POST("/api/mobile/account/delete")
+    suspend fun deleteAccount(@Body body: DeleteAccountRequest)
+
     @GET("/api/notifications")
     suspend fun getNotifications(): List<NotificationItemDto>
 

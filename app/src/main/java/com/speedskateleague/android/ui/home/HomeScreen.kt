@@ -93,13 +93,6 @@ fun HomeScreen(
                             onClick = { navController.navigate(SslDestination.Profile.route) },
                         )
                     }
-                    item {
-                        FocusRow(
-                            title = "Skater",
-                            value = "Community feed",
-                            onClick = { navController.navigate(SslDestination.Skater.route) },
-                        )
-                    }
                     val roles = state.profile?.roles.orEmpty().map { it.lowercase() }
                     val profileTeam = state.profile?.team
                     if (profileTeam != null) {
